@@ -23,32 +23,28 @@
 <body>
 	<div class="container">
 		<jsp:include page="layout/header.jsp" />
-
 		<div class="row my-3 row-cols-2 row-cols-sm-4">
-			<jsp:useBean id="listVideo" scope="request" type="java.util.List"/>
-			<c:forEach var="video" varStatus="loop" items="${listVideo}">
+			<c:forEach var="video" varStatus="loop" items="${listVideFavorite}">
 				<div class="col">
 					<div class="card p-2 position-relative">
-						<a href="${pageContext.request.contextPath}/videoDetail?id=${video.id }">
 						<img src="${video.poster}"
-							 class="card-img card-content-img" style="width: 100%; height: 200px; object-fit: cover;" />
-						</a>
+							class="card-img card-content-img" />
 						<div class="card-body" style="transform: rotate(0);">
 							<a href="${pageContext.request.contextPath}/videoDetail?id=${video.id }"
 								class="card-text stretched-link text-decoration-none td-text">${video.title }</a>
 						</div>
 						<div class="mx-2 my-0">
 							<c:if test="${not empty sessionScope.currentUser}">
-						  		<a href="${pageContext.request.contextPath}/likeVideo?id=${video.id}" class="btn btn-primary ${listLiked.contains(video.id)?'d-none':''}">Like</a> 
-								<a href="${pageContext.request.contextPath}/likeVideo?id=${video.id}" class="btn btn-danger ${listLiked.contains(video.id)?'':'d-none'}">Unlike</a> 
-								<button class="btn btn-success" data-idVideo="${video.id }" data-bs-toggle="modal" data-bs-target="#modalShareVideo">Share</button>
+								<a href="${pageContext.request.contextPath}/likeVideo?id=${video.id}"
+									class="btn btn-danger">Unlike</a>
+								<button class="btn btn-success" data-idVideo="${video.id }"
+									data-bs-toggle="modal" data-bs-target="#modalShareVideo">Share</button>
 							</c:if>
 						</div>
 					</div>
 				</div>
 			</c:forEach>
 		</div>
-
 
 		<jsp:include page="layout/footer.jsp" />
 	</div>
@@ -104,6 +100,5 @@
 		  }
 		});
 	</script>
-
 </body>
 </html>
