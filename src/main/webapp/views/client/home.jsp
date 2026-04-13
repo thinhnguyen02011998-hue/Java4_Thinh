@@ -1,109 +1,173 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Home</title>
+<title>Home - PolyOES</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 <style>
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	background-color: #f0f2f5;
+}
+
+.main-content {
+	flex: 1 0 auto;
+}
+
+footer {
+	flex-shrink: 0;
+}
+
+/* KHÔI PHỤC PHONG CÁCH KHUNG VÀNG */
+.custom-card {
+	border: 5px solid #ffc107 !important;
+	border-radius: 20px;
+	overflow: hidden;
+	background-color: #ffc107;
+	box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.15);
+	transition: all 0.2s ease;
+}
+
+.custom-card:hover {
+	transform: translate(-3px, -3px);
+	box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.2);
+}
+
+.card-content-img {
+	height: 190px;
+	width: 100%;
+	object-fit: cover;
+	border-bottom: 5px solid #ffc107;
+	background-color: #000;
+}
+
 .td-text {
+	font-weight: 800;
+	color: #000 !important;
+	text-transform: uppercase;
+	height: 3rem;
 	overflow: hidden;
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 }
+
+.video-stats {
+	display: flex;
+	justify-content: space-around;
+	background: rgba(255, 255, 255, 0.6);
+	border-radius: 10px;
+	padding: 5px;
+	margin-bottom: 10px;
+	font-weight: bold;
+	border: 2px solid rgba(0, 0, 0, 0.1);
+}
 </style>
-<link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-	rel="stylesheet"
-	integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-	crossorigin="anonymous">
 </head>
 <body>
-	<div class="container">
-		<jsp:include page="layout/header.jsp" />
 
-		<div class="row my-3 row-cols-2 row-cols-sm-4">
-			<jsp:useBean id="listVideo" scope="request" type="java.util.List"/>
-			<c:forEach var="video" varStatus="loop" items="${listVideo}">
-				<div class="col">
-					<div class="card p-2 position-relative">
-						<a href="${pageContext.request.contextPath}/videoDetail?id=${video.id }">
-						<img src="${video.poster}"
-							 class="card-img card-content-img" style="width: 100%; height: 200px; object-fit: cover;" />
-						</a>
-						<div class="card-body" style="transform: rotate(0);">
-							<a href="${pageContext.request.contextPath}/videoDetail?id=${video.id }"
-								class="card-text stretched-link text-decoration-none td-text">${video.title }</a>
-						</div>
-						<div class="mx-2 my-0">
-							<c:if test="${not empty sessionScope.currentUser}">
-						  		<a href="${pageContext.request.contextPath}/likeVideo?id=${video.id}" class="btn btn-primary ${listLiked.contains(video.id)?'d-none':''}">Like</a> 
-								<a href="${pageContext.request.contextPath}/likeVideo?id=${video.id}" class="btn btn-danger ${listLiked.contains(video.id)?'':'d-none'}">Unlike</a> 
-								<button class="btn btn-success" data-idVideo="${video.id }" data-bs-toggle="modal" data-bs-target="#modalShareVideo">Share</button>
-							</c:if>
-						</div>
-					</div>
-				</div>
-			</c:forEach>
-		</div>
+	<!-- Header rộng 100% -->
+	<jsp:include page="/views/client/layout/header.jsp" />
 
+	<main class="main-content">
+		<div class="container py-4">
+			<div
+				class="row g-4 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+				<c:forEach var="video" items="${listVideo}">
+					<div class="col">
+						<div class="card custom-card">
+							<a
+								href="${pageContext.request.contextPath}/videoDetail?id=${video.id}">
+								<img src="${video.poster}" class="card-content-img" />
+							</a>
+							<div class="card-body d-flex flex-column">
+								<a
+									href="${pageContext.request.contextPath}/videoDetail?id=${video.id}"
+									class="text-decoration-none td-text mb-2"> ${video.title} </a>
 
-		<jsp:include page="layout/footer.jsp" />
-	</div>
-	<div class="modal" tabindex="-1" id="modalShareVideo">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">Send video to yout friend</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal"
-							aria-label="Close"></button>
-					</div>
-					<div class="modal-body">
-						<form action="${pageContext.request.contextPath}/shareVideo" method="post">
-							<div class="mb-3">
-								<label for="exampleFormControlInput1" class="form-label">Your
-									friend's email?</label>
-								<input type="email" class="form-control" name="email" id="exampleFormControlInput1"
-									placeholder="name@example.com" required>
-								<span class="text-success d-none" id="successMessage">Chia sẻ thành công</span>
-								<input type="hidden" id="videoIdInput" name="videoId"/>
-								<input id="btn-send" class="d-none" type="submit" >
+								<div class="video-stats">
+									<span class="text-danger"><i class="bi bi-heart-fill"></i>
+										${video.favoriteCount != null ? video.favoriteCount : 0}</span> <span
+										class="text-primary"><i class="bi bi-share-fill"></i>
+										${video.shareCount != null ? video.shareCount : 0}</span>
+								</div>
+
+								<div class="mt-auto d-flex gap-2">
+									<c:choose>
+										
+										<c:when test="${not empty sessionScope.currentUser}">
+											<c:set var="isLiked" value="${listLiked.contains(video.id)}" />
+											<a
+												href="${pageContext.request.contextPath}/likeVideo?id=${video.id}"
+												class="btn ${isLiked ? 'btn-danger' : 'btn-light'} border-dark fw-bold btn-sm flex-fill">
+												${isLiked ? 'UNLIKE' : 'LIKE'} </a>
+
+											<button class="btn btn-dark fw-bold btn-sm flex-fill"
+												onclick="document.getElementById('videoIdInput').value='${video.id}'"
+												data-bs-toggle="modal" data-bs-target="#modalShareVideo">
+												SHARE</button>
+										</c:when>
+
+										
+										<c:otherwise>
+											
+											<a href="${pageContext.request.contextPath}/signin"
+												class="btn btn-light border-dark fw-bold btn-sm flex-fill">
+												LIKE </a>
+											
+											<a href="${pageContext.request.contextPath}/signin"
+												class="btn btn-dark fw-bold btn-sm flex-fill"> SHARE </a>
+										</c:otherwise>
+									</c:choose>
+								</div>
 							</div>
-						</form>
+						</div>
 					</div>
-					<div class="modal-footer">
-						<label for="btn-send"  class="btn btn-primary">Send</label>
-					</div>
-				</div>
+				</c:forEach>
 			</div>
 		</div>
-	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-		integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-		crossorigin="anonymous"></script>
-	<script>
-	document.addEventListener("DOMContentLoaded", () => {
-		  const shareButtons = document.querySelectorAll("button[data-idVideo]");
-		  const videoIdInput = document.getElementById("videoIdInput");
-		  shareButtons.forEach((button) => {
-		    button.addEventListener("click", () => {
-		      const videoId = button.getAttribute("data-idVideo");
-		      videoIdInput.value = videoId;
-		    });
-		  });
-		  const urlParams = new URLSearchParams(window.location.search);
-		  if (urlParams.get("modal") === "true") {
-		      const modal = new bootstrap.Modal(document.getElementById("modalShareVideo"));
-		      modal.show();
-		      const successMessage = document.getElementById("successMessage");
-	          if (successMessage) {
-	              successMessage.classList.remove("d-none");
-	          }
-		  }
-		});
-	</script>
+	</main>
 
+	<!-- Footer rộng 100% -->
+	<jsp:include page="/views/client/layout/footer.jsp" />
+
+	<!-- Modal Share Video (Giữ nguyên) -->
+	<div class="modal fade" id="modalShareVideo" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content"
+				style="border: 5px solid #ffc107; border-radius: 20px;">
+				<form action="${pageContext.request.contextPath}/shareVideo"
+					method="post">
+					<div class="modal-body p-4 text-center">
+						<h4 class="fw-bold mb-3">CHIA SẺ VIDEO</h4>
+						<input type="email" class="form-control border-dark mb-3"
+							name="email" placeholder="Email bạn bè" required> <input
+							type="hidden" id="videoIdInput" name="videoId">
+						<button type="submit"
+							class="btn btn-warning w-100 fw-bold border-dark shadow-sm">GỬI
+							NGAY</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

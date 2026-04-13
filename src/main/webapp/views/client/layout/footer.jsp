@@ -1,9 +1,6 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
-	
-	<!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
-	
-<section class="footer-bottom text-center bg-light border-top py-3">
-	<div class="container-fluid">[họ tên - mã sinh viên]</div>
-	<!-- container-fluid.// -->
-</section>
+<%@ page pageEncoding="UTF-8"%>
+<footer class="text-center text-white py-3 shadow-lg mt-auto" style="background-color: #198754; border-top: 4px solid #ff69b4; width: 100%;">
+    <div class="container-fluid">
+        <p class="mb-0 fw-bold">© 2026 <span style="color: #ff69b4;">SHOP VIDEO</span> - [Họ tên - Mã sinh viên]</p>
+    </div>
+</footer>

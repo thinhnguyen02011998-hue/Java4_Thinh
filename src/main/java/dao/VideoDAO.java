@@ -152,6 +152,85 @@ public class VideoDAO implements DAOInterface<Video, String> {
 
         return list;
     }
+    
+ // Thêm vào VideoDAO.java
+    public List<Video> findVideosLikedByUserWithStats(String userId) {
+        List<Video> list = new ArrayList<>();
+        Session session = XJPA.getSessionFactory().openSession();
+        try {
+            // Query lấy video từ bảng Favorite và đếm stats tương ứng của video đó
+            String hql = "SELECT f.video, " +
+                         "(SELECT COUNT(f2) FROM Favorite f2 WHERE f2.video.id = f.video.id), " +
+                         "(SELECT COUNT(s) FROM Share s WHERE s.video.id = f.video.id) " +
+                         "FROM Favorite f WHERE f.user.id = :userId";
+            
+            List<Object[]> results = session.createQuery(hql)
+                                         .setParameter("userId", userId)
+                                         .list();
+            for (Object[] row : results) {
+                Video v = (Video) row[0];
+                v.setFavoriteCount((Long) row[1]);
+                v.setShareCount((Long) row[2]);
+                list.add(v);
+            }
+        } finally {
+            session.close();
+        }
+        return list;
+    }
+ // Chép đoạn này vào trong class VideoDAO
+    public Video findByIdWithStats(String id) {
+        Session session = XJPA.getSessionFactory().openSession();
+        try {
+            String hql = "SELECT v, " +
+                         "(SELECT COUNT(f) FROM Favorite f WHERE f.video.id = v.id), " +
+                         "(SELECT COUNT(s) FROM Share s WHERE s.video.id = v.id) " +
+                         "FROM Video v WHERE v.id = :id";
+            
+            Object resultObj = session.createQuery(hql).setParameter("id", id).uniqueResult();
+            
+            if (resultObj != null) {
+                Object[] row = (Object[]) resultObj;
+                Video v = (Video) row[0];
+                v.setFavoriteCount((Long) row[1]);
+                v.setShareCount((Long) row[2]);
+                return v;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return null;
+    }
+    
+ // Thêm hàm này vào trong class VideoDAO
+    public List<Video> findAllWithStats() {
+        List<Video> list = new java.util.ArrayList<>();
+        Session session = XJPA.getSessionFactory().openSession();
+        try {
+            // HQL lấy tất cả video và đếm số Like, số Share của từng video đó
+            String hql = "SELECT v, " +
+                         "(SELECT COUNT(f) FROM Favorite f WHERE f.video.id = v.id), " +
+                         "(SELECT COUNT(s) FROM Share s WHERE s.video.id = v.id) " +
+                         "FROM Video v";
+            
+            List<Object[]> results = session.createQuery(hql).list();
+            
+            for (Object[] row : results) {
+                Video v = (Video) row[0];
+                v.setFavoriteCount((Long) row[1]); // Gán số lượt Like
+                v.setShareCount((Long) row[2]);    // Gán số lượt Share
+                list.add(v);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+        return list;
+    }
+   
 }
 
 
@@ -168,375 +247,3 @@ public class VideoDAO implements DAOInterface<Video, String> {
 
 
 
-
-
-
-
-//package dao;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//import entity.Video;
-//import javax.persistence.EntityManager;
-//import javax.persistence.TypedQuery;
-//
-//import utils.XJPA;
-//
-//public class VideoDAO implements DAOInterface<Video, String> {
-//
-//    @Override
-//    public List<Video> findAll() {
-//        EntityManager manager = null;
-//        List<Video> list = new ArrayList<>();
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            String jpql = "SELECT v FROM Video v";
-//            list = manager.createQuery(jpql, Video.class).getResultList();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return list;
-//    }
-//
-//    public List<Video> findAllActive() {
-//        EntityManager manager = null;
-//        List<Video> list = new ArrayList<>();
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            String jpql = "SELECT v FROM Video v WHERE v.active = true";
-//            list = manager.createQuery(jpql, Video.class).getResultList();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return list;
-//    }
-//
-//    public List<Video> random10Video(String excludeId) {
-//        EntityManager manager = null;
-//        List<Video> list = new ArrayList<>();
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//
-//            // SQL Server dùng NEWID()
-//            String jpql = "SELECT v FROM Video v WHERE v.id != :id AND v.active = true ORDER BY FUNCTION('NEWID')";
-//            TypedQuery<Video> query = manager.createQuery(jpql, Video.class);
-//            query.setParameter("id", excludeId);
-//            query.setMaxResults(10);
-//
-//            list = query.getResultList();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return list;
-//    }
-//
-//    @Override
-//    public Video findById(String id) {
-//        EntityManager manager = null;
-//        Video video = null;
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            video = manager.find(Video.class, id);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return video;
-//    }
-//
-//    @Override
-//    public void create(Video t) {
-//        EntityManager manager = null;
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            manager.getTransaction().begin();
-//
-//            manager.persist(t);
-//
-//            manager.getTransaction().commit();
-//        } catch (Exception e) {
-//            if (manager != null && manager.getTransaction().isActive()) {
-//                manager.getTransaction().rollback();
-//            }
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//    }
-//
-//    @Override
-//    public boolean deleteById(String id) {
-//        EntityManager manager = null;
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            manager.getTransaction().begin();
-//
-//            Video entity = manager.find(Video.class, id);
-//            if (entity != null) {
-//                manager.remove(entity);
-//            }
-//
-//            manager.getTransaction().commit();
-//            return true;
-//
-//        } catch (Exception e) {
-//            if (manager != null && manager.getTransaction().isActive()) {
-//                manager.getTransaction().rollback();
-//            }
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return false;
-//    }
-//
-//    @Override
-//    public void update(Video t) {
-//        EntityManager manager = null;
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//            manager.getTransaction().begin();
-//
-//            manager.merge(t);
-//
-//            manager.getTransaction().commit();
-//        } catch (Exception e) {
-//            if (manager != null && manager.getTransaction().isActive()) {
-//                manager.getTransaction().rollback();
-//            }
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//    }
-//
-//    public List<Video> findVideosLikedByUser(String userId) {
-//        EntityManager manager = null;
-//        List<Video> list = new ArrayList<>();
-//
-//        try {
-//            manager = XJPA.getEntityManager();
-//
-//            String jpql = "SELECT f.video FROM Favorite f WHERE f.user.id = :userId";
-//            TypedQuery<Video> query = manager.createQuery(jpql, Video.class);
-//            query.setParameter("userId", userId);
-//
-//            list = query.getResultList();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (manager != null) manager.close();
-//        }
-//
-//        return list;
-//    }
-//}
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-////package dao;
-////
-////import java.util.ArrayList;
-////import java.util.List;
-////
-////import entity.Video;
-////import javax.persistence.EntityManager;
-////import javax.persistence.TypedQuery;
-////
-////import utils.XJPA;
-////
-////public class VideoDAO implements DAOInterface<Video, String> {
-////
-////    @Override
-////    public List<Video> findAll() {
-////        EntityManager manager = null;
-////        List<Video> list = new ArrayList<>();
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            String jpql = "SELECT v FROM Video v";
-////            list = manager.createQuery(jpql, Video.class).getResultList();
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return list;
-////    }
-////
-////    public List<Video> findAllActive() {
-////        EntityManager manager = null;
-////        List<Video> list = new ArrayList<>();
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            String jpql = "SELECT v FROM Video v WHERE v.active = true";
-////            list = manager.createQuery(jpql, Video.class).getResultList();
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return list;
-////    }
-////
-////    public List<Video> random10Video(String excludeId) {
-////        EntityManager manager = null;
-////        List<Video> list = new ArrayList<>();
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////
-////            // SQL Server dùng NEWID()
-////            String jpql = "SELECT v FROM Video v WHERE v.id != :id AND v.active = true ORDER BY FUNCTION('NEWID')";
-////            TypedQuery<Video> query = manager.createQuery(jpql, Video.class);
-////            query.setParameter("id", excludeId);
-////            query.setMaxResults(10);
-////
-////            list = query.getResultList();
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return list;
-////    }
-////
-////    @Override
-////    public Video findById(String id) {
-////        EntityManager manager = null;
-////        Video video = null;
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            video = manager.find(Video.class, id);
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return video;
-////    }
-////
-////    @Override
-////    public void create(Video t) {
-////        EntityManager manager = null;
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            manager.getTransaction().begin();
-////
-////            manager.persist(t);
-////
-////            manager.getTransaction().commit();
-////        } catch (Exception e) {
-////            if (manager != null && manager.getTransaction().isActive()) {
-////                manager.getTransaction().rollback();
-////            }
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////    }
-////
-////    @Override
-////    public boolean deleteById(String id) {
-////        EntityManager manager = null;
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            manager.getTransaction().begin();
-////
-////            Video entity = manager.find(Video.class, id);
-////            if (entity != null) {
-////                manager.remove(entity);
-////            }
-////
-////            manager.getTransaction().commit();
-////            return true;
-////
-////        } catch (Exception e) {
-////            if (manager != null && manager.getTransaction().isActive()) {
-////                manager.getTransaction().rollback();
-////            }
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return false;
-////    }
-////
-////    @Override
-////    public void update(Video t) {
-////        EntityManager manager = null;
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////            manager.getTransaction().begin();
-////
-////            manager.merge(t);
-////
-////            manager.getTransaction().commit();
-////        } catch (Exception e) {
-////            if (manager != null && manager.getTransaction().isActive()) {
-////                manager.getTransaction().rollback();
-////            }
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////    }
-////
-////    public List<Video> findVideosLikedByUser(String userId) {
-////        EntityManager manager = null;
-////        List<Video> list = new ArrayList<>();
-////
-////        try {
-////            manager = XJPA.getEntityManager();
-////
-////            String jpql = "SELECT f.video FROM Favorite f WHERE f.user.id = :userId";
-////            TypedQuery<Video> query = manager.createQuery(jpql, Video.class);
-////            query.setParameter("userId", userId);
-////
-////            list = query.getResultList();
-////        } catch (Exception e) {
-////            e.printStackTrace();
-////        } finally {
-////            if (manager != null) manager.close();
-////        }
-////
-////        return list;
-////    }
-////}
